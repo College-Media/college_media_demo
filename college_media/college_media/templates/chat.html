@@ -1,0 +1,166 @@
+{% extends "user_pages/base.html" %}
+
+{% block style %}
+<style>
+    .right {
+        display: flex;
+        justify-content: flex-end;
+        height: 100vh; /* Ensure it takes full height of the viewport */
+    }
+
+    .chat-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        width: 100%; /* Set to full width */
+        max-width: 600px; /* Optionally, limit the max width */
+        height: 100%; /* Set to full height */
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background-color: #3f51b5;
+        color: #fff;
+        padding: 15px;
+        font-size: 18px;
+        text-align: center;
+    }
+
+    .chat-body {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: #f8f9fa;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .message-sender {
+        background-color: #e1f5fe;
+        align-self: flex-end;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 20px;
+        border-top-left-radius: 20px;
+    }
+
+    .message-receiver {
+        background-color: #f1f1f1;
+        align-self: flex-start;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 20px;
+        border-top-right-radius: 20px;
+    }
+
+    .chat-footer {
+        padding: 15px;
+        display: flex;
+        gap: 10px;
+        border-top: 1px solid #ddd;
+        background-color: #fff;
+        position: sticky;
+        bottom: 0; /* Stick to the bottom */
+        width: 100%; /* Ensure the footer takes full width */
+        background-color: #fff;
+        z-index: 10; /* Ensure footer stays on top of other content */
+    }
+
+    .chat-footer input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 25px;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .chat-footer button {
+        background-color: #3f51b5;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+    }
+
+    .chat-footer button:hover {
+        background-color: #303f9f;
+    }
+</style>
+{% endblock style %}
+
+{% block content %}
+<div class="right">
+    <div class="chat-container">
+        <div class="chat-header">Chat with {{receiver.username }}</div>
+        <div class="chat-body" id="chat-messages">
+            {% for chat in chats %}
+                {% if chat.sender == request.user %}
+                <!-- Sender's message -->
+                <div class="message-sender">
+                    <p><strong>{{ chat.sender }}:</strong> {{ chat.content }}</p>
+                </div>
+                {% else %}
+                
+                <div class="message-receiver">
+                    <p><strong>{{ chat.sender }}:</strong> {{ chat.content }}</p>
+                </div>
+                {% endif %}
+            {% empty %}
+            <p>No messages to show.</p>
+            {% endfor %}
+        </div>
+    
+        <!-- Chat Footer for Input -->
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="Type a message..." />
+            <button id="send-btn">&#9658;</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const conversationId = "{{ receiver.id }}";
+    const userId = "{{ request.user.id }}";
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + conversationId + '/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log(data)
+        const messageContainer = document.createElement('div');
+        messageContainer.classList.add(data.sender == userId ? 'message-sender' : 'message-receiver');
+        messageContainer.innerHTML = `<p><strong>${data.sender}:</strong> ${data.message}</p>`;
+        document.getElementById('chat-messages').appendChild(messageContainer);
+
+        // Scroll to the bottom after a new message is added
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    document.getElementById('send-btn').onclick = function() {
+        const messageInput = document.getElementById('chat-input');
+        const message = messageInput.value;
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'sender_id': userId,
+        }));
+        messageInput.value = ''; // Clear the input field after sending the message
+    };
+</script>
+{% endblock %}

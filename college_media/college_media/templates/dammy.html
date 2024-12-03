@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram-like Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .right{
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            display: flex;
+            width: 80%;
+            max-width: 1200px;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Chat List Section */
+        .chat-list {
+            width: 30%;
+            border-right: 1px solid #e0e0e0;
+            background-color: #fafafa;
+        }
+
+        .chat-list .chat-header {
+            padding: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #fff;
+        }
+
+        .chat-list ul {
+            list-style: none;
+            overflow-y: auto;
+            height: calc(100% - 60px);
+        }
+
+        .chat-list ul::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-list ul::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4px;
+        }
+
+        .chat-list li {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .chat-list li:hover {
+            background-color: #f1f1f1;
+        }
+
+        .chat-list img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-info .username {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .user-info .last-message {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* Chat Window Section */
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+
+        .chat-window .chat-header {
+            padding: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4px;
+        }
+
+        .message {
+            max-width: 60%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            position: relative;
+            font-size: 1em;
+        }
+
+        .message.sent {
+            background-color: #d1f7c4;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+
+        .message.received {
+            background-color: #e4e6eb;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        /* Chat Input Section */
+        .chat-input {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #fff;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+            border-radius: 20px;
+            background-color: #f1f1f1;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+
+        .chat-input button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50%;
+            background-color: #0095f6;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-color: #007bb5;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Chat List Section -->
+        <div class="chat-list">
+            <div class="chat-header">Chats</div>
+            <ul>
+                <li>
+                    <img src="https://via.placeholder.com/40" alt="User 1">
+                    <div class="user-info">
+                        <span class="username">John Doe</span>
+                        <span class="last-message">Hey, how's it going?</span>
+                    </div>
+                </li>
+                <li>
+                    <img src="https://via.placeholder.com/40" alt="User 2">
+                    <div class="user-info">
+                        <span class="username">Jane Smith</span>
+                        <span class="last-message">Let's catch up tomorrow!</span>
+                    </div>
+                </li>
+                <li>
+                    <img src="https://via.placeholder.com/40" alt="User 3">
+                    <div class="user-info">
+                        <span class="username">David Lee</span>
+                        <span class="last-message">Can you send the report?</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Chat Window Section -->
+        <div class="chat-window">
+            <div class="chat-header">John Doe</div>
+            <div class="chat-messages">
+            {% for chat in chats %}
+                 {% if chat.sender == request.user %}
+                    <div class="message received">
+                        <p>Hello, how are you?</p>
+                        <span class="timestamp">10:45 AM</span>
+                    </div>
+                {% else %}
+                    <div class="message sent">
+                        <p>I'm good, thanks! How about you?</p>
+                        <span class="timestamp">10:46 AM</span>
+                    </div>
+                {% endif %}
+                <div class="message received">
+                    <p>Doing great, thanks for asking!</p>
+                    <span class="timestamp">10:47 AM</span>
+                </div>
+            </div>
+
+            <!-- Chat Input Section -->
+            <div class="chat-input">
+                <input type="text" placeholder="Type a message...">
+                <button>&#9658;</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const conversationId = "{{ receiver.id }}";
+    
+        const userId = "{{ request.user.id }}";
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + conversationId + '/'
+        );
+    
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = <p><strong>${data.sender}:</strong> ${data.message}</p>;
+            document.getElementById('chat-messages').innerHTML += message;
+        };
+    
+        document.getElementById('send-btn').onclick = function() {
+            const messageInput = document.getElementById('chat-input');
+            const message = messageInput.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'sender_id': userId,
+            }));
+            messageInput.value = '';
+        };
+    </script>
